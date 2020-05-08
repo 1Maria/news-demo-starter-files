@@ -106,7 +106,9 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	search.TotalPages = int(math.Ceil(float64(search.Results.TotalResults / pageSize)))
 	err = tpl.Execute(w, search)
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 }
 
