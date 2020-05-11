@@ -72,6 +72,12 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	tpl.Execute(w, nil)
 }
 
+type NewsAPIError struct {
+	Status  string `json:"status"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
 func searchHandler(w http.ResponseWriter, r *http.Request) {
 	u, err := url.Parse(r.URL.String())
 	if err != nil {
@@ -109,7 +115,14 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		w.WriteHeader(http.StatusInternalServerError)
+		newError := &NewsAPIError{}
+		err := json.NewDecoder(resp.Body).Decode(newError)
+		if err != nil {
+			http.Error(w, "Unexpected server error", http.StatusInternalServerError)
+			return
+		}
+
+		http.Error(w, newError.Message, http.StatusInternalServerError)
 		return
 	}
 
